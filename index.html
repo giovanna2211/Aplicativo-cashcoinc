@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="./script.js" defer></script>
+  <title>Cash Coinc</title>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="./img/logo.png" alt="Logo Cash Coinc">
+    </div>
+
+    <hr id="hrTop">
+
+    <div class="meta" id="metaSection">
+      <h3>Metas</h3>
+
+      <div class="meta-tags" id="metaTags" aria-live="polite"></div>
+
+      <a id="criarMeta" href="#">+ Criar meta</a>
+
+      <div class="form-meta" id="formMeta">
+        <div class="form-row">
+          <input type="text" id="nomeMeta" placeholder="Item" />
+
+          <div class="input-prefix" aria-hidden="false">
+            <span class="prefix">R$</span>
+            <input type="text" id="valorMeta" class="valor" placeholder="Valor" aria-label="Valor em reais" />
+          </div>
+        </div>
+        <button class="btn-definir" id="definirMeta">DEFINIR META</button>
+      </div>
+    </div>
+
+    <hr id="hrBottom">
+
+    <div class="registrar">
+      <h3>Registrar</h3>
+      <p class="meta-aplicada">Meta aplicada</p>
+      <div class="radio-group">
+        <label><input type="radio" name="opcao" id="radioMeta" value="meta" checked> Economizar para <span id="registrarMetaText">meta</span></label>
+        <label><input type="radio" name="opcao" id="radioSave" value="economizar"> Economizar</label>
+      </div>
+
+      <div class="botoes">
+        <button id="depositBtn" class="btn">DEPOSITAR</button>
+        <button id="withdrawBtn" class="btn">SACAR</button>
+      </div>
+
+      <!-- campo que aparece ao clicar em DEPOSITAR -->
+      <div id="depositForm" class="deposit-form" aria-hidden="true">
+        <label for="depositValue">Valor do depósito (R$)</label>
+        <div class="deposit-row">
+          <span class="prefix-deposit">R$</span>
+          <input id="depositValue" type="number" class="deposit-input" placeholder="R$ 0" />
+        </div>
+      </div>
+
+      <!-- campo que aparece ao clicar em SACAR -->
+      <div id="withdrawForm" class="withdraw-form" aria-hidden="true">
+        <label for="withdrawValue">Valor do saque (R$)</label>
+        <div class="deposit-row">
+          <span class="prefix-deposit">R$</span>
+          <input id="withdrawValue" type="number" class="deposit-input" placeholder="R$ 0" />
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <div class="footer">
+      <p>Jogue agora no seu próprio SmartCoinc!</p>
+      <img src="./img/porco.png" alt="Porquinho">
+      <br>
+      <button class="btn">JOGAR</button>
+    </div>
+  </div>
+</body>
+</html>

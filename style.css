@@ -1,0 +1,375 @@
+:root {
+    --cor-bege: #F5F0E1;
+    --cor-rosinha: #F5C2C2;
+    --cor-rosa: #EC5C8F;
+    --cor-rosalemonade: #D34C74;
+    --cor-azul-duo: #1CB0F6;
+    --cor-azul-marinho: #1A2E45;
+    --cor-linha: #D9D9D9;
+    --tag-bg: rgba(26, 46, 69, 0.03);
+    --tag-border: #A19999;
+    --tag-active-border: #1CB0F6;
+    --cor-rosinha-hover: #F489AF;
+    /* nova variável solicitada */
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Nunito", sans-serif;
+    background-color: var(--cor-bege);
+    display: flex;
+    justify-content: center;
+    padding: 24px 0;
+}
+
+.container {
+    width: 100%;
+    max-width: 400px;
+    background-color: var(--cor-bege);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.header {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.header img {
+    width: 154px;
+    height: auto;
+}
+
+hr {
+    width: 100%;
+    border: none;
+    border-top: 5px solid var(--cor-linha);
+    margin: 0;
+}
+
+.meta {
+    width: 100%;
+    padding: 16px 20px;
+}
+
+.meta h3 {
+    color: var(--cor-azul-marinho);
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 16px 0;
+}
+
+.meta-tags {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.meta-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--tag-bg);
+    border: 1px solid var(--tag-border);
+    border-radius: 999px;
+    color: var(--tag-border);
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    user-select: none;
+}
+
+.meta-tag.active {
+    border-color: var(--tag-active-border);
+    color: var(--cor-azul-marinho);
+    background: rgba(28, 176, 246, 0.06);
+}
+
+.meta-tag .tag-text {
+    display: inline-block;
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.meta-tag .tag-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    color: var(--cor-azul-marinho);
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.meta a {
+    color: var(--cor-azul-duo);
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.form-meta {
+    margin-top: 8px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.form-meta input[type="text"] {
+    padding: 8px 10px;
+    font-size: 16px;
+    border: 2px solid var(--cor-azul-duo);
+    border-radius: 8px;
+    outline: none;
+    flex: 1;
+    background-color: var(--cor-bege);
+}
+
+/* wrapper para prefixo R$ fixo */
+.input-prefix {
+    position: relative;
+    display: inline-block;
+}
+
+.input-prefix .prefix {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: var(--cor-azul-duo);
+    pointer-events: none;
+    user-select: none;
+}
+
+.form-meta .valor {
+    width: 110px;
+    padding-left: 32px;
+    text-align: right;
+    box-sizing: border-box;
+}
+
+.btn-definir {
+    background-color: var(--cor-azul-duo);
+    color: var(--cor-bege);
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    height: 40px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-definir:hover {
+    background-color: #1495d6;
+}
+
+.registrar {
+    width: 100%;
+    padding: 16px 20px;
+}
+
+.registrar h3 {
+    color: var(--cor-azul-marinho);
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+}
+
+.meta-aplicada {
+    color: var(--cor-azul-duo);
+    font-size: 16px;
+    font-weight: 400;
+    margin-bottom: 10px;
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+label {
+    color: var(--cor-texto);
+    font-size: 16px;
+    font-weight: 400;
+    cursor: pointer;
+}
+
+input[type="radio"] {
+    accent-color: var(--cor-azul-duo);
+    margin-right: 6px;
+}
+
+.radio-group span {
+    color: var(--cor-azul-duo);
+    text-decoration: none;
+}
+
+.botoes {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.btn {
+    background-color: var(--cor-rosa);
+    color: var(--cor-bege);
+    border: none;
+    border-radius: 30px;
+    font-size: 15px;
+    font-weight: 700;
+    width: 152px;
+    height: 39px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+/* hover passou a usar a nova variável solicitada */
+.btn:hover {
+    background-color: var(--cor-rosinha-hover);
+}
+
+/* estado ativo do botão (depositar / sacar) */
+.btn.active {
+    background: #ffffff;
+    color: var(--cor-rosa);
+    border: 1px solid var(--cor-rosa);
+}
+
+/* quando ativo e com hover também usa a mesma variável */
+.btn.active:hover {
+    background-color: var(--cor-rosinha-hover);
+    color: #fff;
+    border-color: var(--cor-rosinha-hover);
+}
+
+/* formulário de depósito/saque que aparece ao clicar */
+.deposit-form,
+.withdraw-form {
+    width: 100%;
+    margin-top: 8px;
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.deposit-form.active,
+.withdraw-form.active {
+    display: flex;
+}
+
+.deposit-form label,
+.withdraw-form label {
+    font-size: 16px;
+    color: var(--cor-rosa);
+    margin-left: 6px;
+}
+
+.deposit-input {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 2px solid var(--cor-rosa);
+    background: transparent;
+    font-size: 14px;
+    box-sizing: border-box;
+    padding-left: 36px;
+    /* espaço para prefixo */
+    transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+}
+
+/* novo: hover e focus do input usam a mesma cor do hover do botão */
+.deposit-input:hover,
+.deposit-input:focus {
+    border-color: var(--cor-rosinha-hover);
+    box-shadow: 0 0 0 6px rgba(244, 137, 175, 0.08);
+    outline: none;
+    background-color: var(--cor-bege);
+}
+
+.deposit-input::placeholder {
+    color: #666;
+}
+
+.prefix-deposit {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--cor-rosa);
+    font-weight: bold;
+    pointer-events: none;
+}
+
+.deposit-row {
+    position: relative;
+    width: 100%;
+}
+
+.footer {
+    width: 100%;
+    text-align: center;
+    padding: 24px 16px;
+}
+
+.footer p {
+    color: #333;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.footer img {
+    width: 335px;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+.footer .btn {
+    width: 171px;
+    height: 54px;
+    font-size: 20px;
+    font-weight: 700;
+    background-color: var(--cor-rosa);
+}
+
+@media (max-width: 420px) {
+    .form-meta .valor {
+        width: 100px;
+        padding-left: 32px;
+    }
+
+    .meta-tag {
+        font-size: 13px;
+        padding: 5px 10px;
+    }
+}
