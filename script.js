@@ -1,9 +1,20 @@
-// script.js (VERSÃO CORRIGIDA - sem declarações duplicadas)
+// script.js (organizado e sem duplicações)
+// --------------------------------------------------
+// Seções:
+// 1) Config / Consts
+// 2) Cache do DOM
+// 3) Helpers UI
+// 4) WebSocket (conn / handlers / send)
+// 5) HTTP helpers (fetch / montar UI)
+// 6) Handlers de ações do usuário (meta / deposit / withdraw / play)
+// 7) Init
+// --------------------------------------------------
 
-// CONFIG
+// 1) CONFIG
 const ENDERECO_WS = "wss://ericka-unraisable-harrison.ngrok-free.dev/?from=site";
+const API_BASE = "http://localhost:3333"; // ajuste se necessário
 
-// ELEMENTOS (verifica existência antes de usar)
+// 2) CACHE DO DOM (verifica existência antes de usar)
 const statusConexao = document.getElementById("status");
 const valorTemperatura = document.getElementById("temp");
 const valorUmidade = document.getElementById("umid");
@@ -30,45 +41,46 @@ const withdrawForm = document.getElementById('withdrawForm');
 const depositInput = document.getElementById('depositValue');
 const withdrawInput = document.getElementById('withdrawValue');
 
-const jogarBtn = document.querySelector('.footer .btn'); // se tiver outro, coloque id no HTML
+const jogarBtn = document.querySelector('.footer .btn'); // ou atribua id="btnJogar" no HTML
 
 const metaSection = document.getElementById('metaSection');
 const hrTop = document.getElementById('hrTop');
 const hrBottom = document.getElementById('hrBottom');
 const radios = document.querySelectorAll('input[name="opcao"]');
 
+// estado local
 let metaAtual = "";
 let registro = "";
 
 let conexaoWs = null;
 let reconnectTimer = null;
 
-/* =========================
-   UI helpers
-   ========================= */
+// 3) HELPERS UI
 function atualizarUiConectado() {
-  if (statusConexao) {
-    statusConexao.textContent = "Conectado";
-    statusConexao.className = "ok";
-  }
+  if (!statusConexao) return;
+  statusConexao.textContent = "Conectado";
+  statusConexao.className = "ok";
 }
 function atualizarUiDesconectado(texto = "Desconectado") {
-  if (statusConexao) {
-    statusConexao.textContent = texto;
-    statusConexao.className = "bad";
-  }
+  if (!statusConexao) return;
+  statusConexao.textContent = texto;
+  statusConexao.className = "bad";
+}
+function showMetaSection(show) {
+  if (!metaSection) return;
+  metaSection.style.display = show ? 'block' : 'none';
+  if (hrBottom) hrBottom.style.display = show ? '' : 'none';
+  metaSection.setAttribute('aria-hidden', show ? 'false' : 'true');
 }
 
-/* =========================
-   WebSocket
-   ========================= */
+// 4) WEBSOCKET (conexão, reconexão, envio)
 function conectarWS() {
   if (conexaoWs && conexaoWs.readyState === WebSocket.OPEN) return;
 
   try {
     conexaoWs = new WebSocket(ENDERECO_WS);
   } catch (err) {
-    console.error("Erro ao criar WebSocket:", err);
+    console.error("Erro ao criar WS:", err);
     scheduleReconnectWS();
     return;
   }
@@ -76,19 +88,19 @@ function conectarWS() {
   conexaoWs.onopen = () => {
     console.log("WS conectado");
     atualizarUiConectado();
-    // pede estado inicial (o servidor pode enviar snapshot automaticamente)
+    // carregamentos iniciais (o servidor pode enviar snapshot também)
     carregarMetas();
-    buscarSaldo();
+    solicitarSaldo();
   };
 
   conexaoWs.onmessage = (evt) => {
     logMensagens && (logMensagens.textContent = evt.data);
-    console.log("[WS RECEBIDO]", evt.data);
+    // console.log("[WS RECEBIDO]", evt.data);
 
     try {
       const msg = JSON.parse(evt.data);
 
-      // atualizações telemetria simples (mantive compatibilidade)
+      // telemetria simples
       if (typeof msg.temperatura === "number" && valorTemperatura) {
         valorTemperatura.textContent = msg.temperatura.toFixed(1) + " °C";
       }
@@ -104,27 +116,24 @@ function conectarWS() {
             if (msg.saldo) console.log("Saldo (snapshot):", msg.saldo);
             break;
           case "meta":
-            carregarMetas();
-            break;
           case "meta_deleted":
+            // recarrega a lista para garantir consistência
             carregarMetas();
             break;
           case "operation":
-            buscarSaldo();
+            solicitarSaldo();
             break;
           case "play":
-            console.log("Play recebido (debug):", msg);
-            break;
-          case "ack":
-            console.log("ACK:", msg);
+            // debug: navegador pode reagir se quiser
+            console.log("PLAY recebido:", msg);
             break;
           default:
-            console.log("Tipo desconhecido:", msg.type);
+            console.log("WS msg tipo desconhecido:", msg.type);
         }
       }
     } catch (e) {
-      // mensagem não-JSON: apenas log
-      console.log("Mensagem não JSON:", evt.data);
+      // não-JSON
+      console.log("WS texto:", evt.data);
     }
   };
 
@@ -151,22 +160,21 @@ function scheduleReconnectWS() {
 function enviarViaWS(obj) {
   if (!conexaoWs || conexaoWs.readyState !== WebSocket.OPEN) {
     console.warn("WS não aberto — não enviou:", obj);
-    return;
+    return false;
   }
   conexaoWs.send(JSON.stringify(obj));
+  return true;
 }
 
-/* =========================
-   Backend HTTP helpers
-   ========================= */
+// 5) HTTP HELPERS (carregar / montar UI)
 async function carregarMetas() {
   if (!metaTags) return;
   try {
-    const resp = await fetch("http://localhost:3333/metas");
+    const resp = await fetch(`${API_BASE}/metas`);
     const metas = await resp.json();
     montarMetaTags(metas);
   } catch (err) {
-    console.error("Erro ao carregar metas:", err);
+    console.error("Erro carregar metas:", err);
   }
 }
 
@@ -199,7 +207,6 @@ function montarMetaTags(metas) {
       if (ev.target === btn) return;
       setActiveTag(tag, name);
     });
-
     tag.addEventListener('keydown', (ev) => {
       if (ev.key === 'Enter' || ev.key === ' ') {
         ev.preventDefault();
@@ -210,7 +217,7 @@ function montarMetaTags(metas) {
     btn.addEventListener('click', async (ev) => {
       ev.stopPropagation();
       try {
-        const res = await fetch("http://localhost:3333/metas", {
+        const res = await fetch(`${API_BASE}/metas`, {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id })
@@ -225,56 +232,52 @@ function montarMetaTags(metas) {
     });
   });
 
-  // ativa a última meta por padrão se existir
+  // ativa a última meta automaticamente (se houver)
   const last = metaTags.querySelector('.meta-tag:last-child');
   if (last) {
     const all = Array.from(metas);
     setActiveTag(last, all[all.length - 1].name);
   } else {
-    // se não houver metas, limpa seleção
     registrarMetaText && (registrarMetaText.textContent = 'meta');
     metaAtual = "";
     registro = "";
   }
 }
 
-function setActiveTag(tagEl, name) {
-  if (!metaTags) return;
-  metaTags.querySelectorAll('.meta-tag').forEach(t => t.classList.remove('active'));
-  tagEl.classList.add('active');
-  registrarMetaText && (registrarMetaText.textContent = name);
-  metaAtual = name;
-  registro = name;
-  const metaRadio = document.getElementById('radioMeta');
-  if (metaRadio) metaRadio.checked = true;
-  showMetaSection(true);
-}
-
-async function buscarSaldo() {
+async function solicitarSaldo() {
   try {
-    const resp = await fetch("http://localhost:3333/saldo");
+    const resp = await fetch(`${API_BASE}/saldo`);
     const s = await resp.json();
     console.log("Saldo:", s);
     return s;
   } catch (err) {
-    console.error("Erro ao buscar saldo:", err);
+    console.error("Erro buscar saldo:", err);
     return null;
   }
 }
 
-/* =========================
-   Ações do usuário
-   ========================= */
+// 6) HANDLERS DE AÇÕES DO USUÁRIO
 
-// criar meta
+// Toggle do formulário de criar meta
+if (criarMetaBtn && formMeta && nomeMeta) {
+  criarMetaBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    const isOpen = formMeta.style.display === 'flex' || formMeta.style.display === 'block';
+    formMeta.style.display = isOpen ? 'none' : 'flex';
+    if (!isOpen) nomeMeta.focus();
+  });
+}
+
+// Criar meta -> POST /metas
 if (definirMetaBtn) {
   definirMetaBtn.addEventListener('click', async () => {
     const name = nomeMeta ? nomeMeta.value.trim() : "";
     const value = valorMeta ? valorMeta.value.trim() : "";
     if (!name) { alert("Preencha o nome da meta"); nomeMeta && nomeMeta.focus(); return; }
+
     const meta = { name, value };
     try {
-      const res = await fetch("http://localhost:3333/metas", {
+      const res = await fetch(`${API_BASE}/metas`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ meta })
@@ -292,16 +295,57 @@ if (definirMetaBtn) {
   });
 }
 
-// depositar
-if (depositInput) {
+// Set active tag
+function setActiveTag(tagEl, name) {
+  if (!metaTags) return;
+  metaTags.querySelectorAll('.meta-tag').forEach(t => t.classList.remove('active'));
+  tagEl.classList.add('active');
+  registrarMetaText && (registrarMetaText.textContent = name);
+  metaAtual = name;
+  registro = name;
+  const metaRadio = document.getElementById('radioMeta');
+  if (metaRadio) metaRadio.checked = true;
+  showMetaSection(true);
+}
+
+// Deposit / Withdraw UI toggles
+if (depositBtn && withdrawBtn && depositForm && withdrawForm && depositInput && withdrawInput) {
+  depositBtn.addEventListener('click', () => {
+    const active = depositBtn.classList.contains('active');
+    if (!active) {
+      depositBtn.classList.add('active');
+      withdrawBtn.classList.remove('active');
+      depositForm.classList.add('active');
+      withdrawForm.classList.remove('active');
+      depositForm.setAttribute('aria-hidden', 'false');
+      withdrawForm.setAttribute('aria-hidden', 'true');
+    }
+    depositInput.focus(); depositInput.select();
+  });
+
+  withdrawBtn.addEventListener('click', () => {
+    const active = withdrawBtn.classList.contains('active');
+    if (!active) {
+      withdrawBtn.classList.add('active');
+      depositBtn.classList.remove('active');
+      withdrawForm.classList.add('active');
+      depositForm.classList.remove('active');
+      withdrawForm.setAttribute('aria-hidden', 'false');
+      depositForm.setAttribute('aria-hidden', 'true');
+    }
+    withdrawInput.focus(); withdrawInput.select();
+  });
+
+  // deposit submit (Enter)
   depositInput.addEventListener('keydown', async (e) => {
     if (e.key !== 'Enter') return;
     e.preventDefault();
     const value = depositInput.valueAsNumber;
     if (isNaN(value) || value <= 0) { alert("Informe um valor válido"); return; }
+
     const operation = { value, operation: "deposit", meta: registro };
     try {
-      const res = await fetch("http://localhost:3333/historico", {
+      const res = await fetch(`${API_BASE}/historico`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ operation })
@@ -309,24 +353,24 @@ if (depositInput) {
       const j = await res.json();
       alert(j.message || "Depósito registrado");
       depositInput.value = "";
-      await buscarSaldo();
+      await solicitarSaldo();
+      // servidor realizará broadcast para ESPs
     } catch (err) {
       console.error("Erro no depósito:", err);
       alert("Erro ao registrar depósito");
     }
   });
-}
 
-// sacar
-if (withdrawInput) {
+  // withdraw submit (Enter)
   withdrawInput.addEventListener('keydown', async (e) => {
     if (e.key !== 'Enter') return;
     e.preventDefault();
     const value = withdrawInput.valueAsNumber;
     if (isNaN(value) || value <= 0) { alert("Informe um valor válido"); return; }
+
     const operation = { value, operation: "withdraw", meta: registro };
     try {
-      const res = await fetch("http://localhost:3333/historico", {
+      const res = await fetch(`${API_BASE}/historico`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ operation })
@@ -334,7 +378,7 @@ if (withdrawInput) {
       const j = await res.json();
       alert(j.message || "Saque registrado");
       withdrawInput.value = "";
-      await buscarSaldo();
+      await solicitarSaldo();
     } catch (err) {
       console.error("Erro no saque:", err);
       alert("Erro ao registrar saque");
@@ -342,46 +386,32 @@ if (withdrawInput) {
   });
 }
 
-// JOGAR
+// JOGAR -> envia play via WS (e tenta POST /play como fallback)
 if (jogarBtn) {
   jogarBtn.addEventListener('click', async () => {
     const payload = { meta: metaAtual || null };
     const playMsg = { type: "play", content: "tela_jogo", payload };
 
-    // envia por WS (se conectado)
-    enviarViaWS(playMsg);
+    const sent = enviarViaWS(playMsg);
 
-    // fallback HTTP
-    try {
-      await fetch("http://localhost:3333/play", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: "tela_jogo", payload })
-      });
-    } catch (err) {
-      console.warn("POST /play falhou:", err);
+    if (!sent) {
+      // fallback HTTP
+      try {
+        await fetch(`${API_BASE}/play`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content: "tela_jogo", payload })
+        });
+      } catch (err) {
+        console.warn("POST /play falhou:", err);
+      }
     }
 
     alert("Comando JOGAR enviado");
   });
 }
 
-/* =========================
-   util UI (show/hide meta)
-   ========================= */
-function showMetaSection(show) {
-  if (!metaSection) return;
-  if (show) {
-    metaSection.style.display = 'block';
-    if (hrBottom) hrBottom.style.display = '';
-    metaSection.setAttribute('aria-hidden', 'false');
-  } else {
-    metaSection.style.display = 'none';
-    if (hrBottom) hrBottom.style.display = 'none';
-    metaSection.setAttribute('aria-hidden', 'true');
-  }
-}
-
+// radios change (economizar / meta)
 if (radios && radios.length) {
   radios.forEach(r => r.addEventListener('change', (e) => {
     if (e.target.value === 'economizar') {
@@ -394,17 +424,31 @@ if (radios && radios.length) {
   }));
 }
 
-/* =========================
-   init
-   ========================= */
-(function init() {
-  // keep hrTop visible
-  if (hrTop) hrTop.style.display = '';
+// keyboard submit shortcuts inside meta form
+if (nomeMeta && valorMeta && definirMetaBtn) {
+  [nomeMeta, valorMeta].forEach(inp => {
+    inp.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        definirMetaBtn.click();
+      }
+    });
+  });
 
-  // form meta hidden by default
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' &&
+        (formMeta && (formMeta.style.display === 'flex' || formMeta.style.display === 'block'))) {
+      definirMetaBtn.click();
+    }
+  });
+}
+
+// 7) INIT
+(function init() {
+  // ajustes iniciais de UI
+  if (hrTop) hrTop.style.display = '';
   if (formMeta) formMeta.style.display = 'none';
 
-  // deposit/withdraw initial state
   if (depositForm) depositForm.classList.remove('active');
   if (withdrawForm) withdrawForm.classList.remove('active');
   if (depositBtn) depositBtn.classList.remove('active');
@@ -412,8 +456,9 @@ if (radios && radios.length) {
   if (depositForm) depositForm.setAttribute('aria-hidden', 'true');
   if (withdrawForm) withdrawForm.setAttribute('aria-hidden', 'true');
 
-  // conecta WS e carrega dados iniciais
+  // iniciar WS e carregar dados
   conectarWS();
   carregarMetas();
-  buscarSaldo();
+  solicitarSaldo();
 })();
+
